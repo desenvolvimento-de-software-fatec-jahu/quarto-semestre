@@ -73,6 +73,7 @@ export default function TodoForm() {
             onChange={(e) => setStatus(e.target.value)}
             className="w-full border rounded px-3 py-2 bg-white"
           >
+            <option value="">Selecione um status...</option>
             {STATUS_ORDER.map((option) => (
               <option key={option} value={option}>
                 {STATUS_LABELS[option]}

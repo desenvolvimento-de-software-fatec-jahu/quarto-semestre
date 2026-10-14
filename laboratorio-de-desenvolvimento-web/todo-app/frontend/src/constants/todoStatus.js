@@ -1,7 +1,7 @@
 export const TODO_STATUS = {
-  PENDING: "PENDENTE",
-  IN_PROGRESS: "EM_ANDAMENTO",
-  DONE: "CONCLUIDO",
+  PENDING: "PENDING",
+  IN_PROGRESS: "IN_PROGRESS",
+  DONE: "DONE",
 };
 
 // Ordem em que os status aparecem na interface

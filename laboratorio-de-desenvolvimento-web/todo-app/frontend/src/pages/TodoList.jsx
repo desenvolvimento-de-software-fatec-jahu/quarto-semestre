@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getTodos } from "../api/todoApi.js";
+import { getTodos, updateTodo, deleteTodo } from "../api/todoApi.js";
 import TodoItem from "../components/TodoItem.jsx";
 import { getErrorMessage } from "../utils/getErrorMessage.js";
 
@@ -30,6 +30,28 @@ export default function TodoList() {
       ignore = true;
     };
   }, []);
+
+  const handleStatusChange = async (todoId, status) => {
+    try {
+      const res = await updateTodo(todoId, { status });
+      setTodos((prev) =>
+        prev.map((todo) => (todo._id === todoId ? res.data.todo : todo))
+      );
+    } catch (err) {
+      alert("Falha ao atualizar tarefa: " + getErrorMessage(err));
+    }
+  };
+
+  const handleDelete = async (todoId) => {
+    if (!window.confirm("Deletar essa tarefa?")) return;
+
+    try {
+      await deleteTodo(todoId);
+      setTodos((prev) => prev.filter((todo) => todo._id !== todoId));
+    } catch (err) {
+      alert("Falha ao deletar tarefa: " + getErrorMessage(err));
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8">
@@ -61,10 +83,12 @@ export default function TodoList() {
           {todos.length === 0 ? (
             <p className="text-center py-8 text-gray-500">Nenhuma tarefa encontrada.</p>
           ) : (
-            todos.map((todo) => <TodoItem key={todo._id} todo={todo} />)
+            todos.map((todo) => (<TodoItem key={todo._id} todo={todo} onStatusChange={handleStatusChange} onDelete={handleDelete} />))
           )}
         </div>
       )}
+
+
     </div>
   );
 }
