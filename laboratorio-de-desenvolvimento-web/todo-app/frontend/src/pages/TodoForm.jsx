@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createTodo } from "../api/todoApi.js";
+import { getUsers } from "../api/userApi,js";
 import {
   STATUS_LABELS,
   STATUS_ORDER,
@@ -13,8 +14,40 @@ export default function TodoForm() {
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [status, setStatus] = useState(TODO_STATUS.PENDING);
+  const [participants, setParticipants] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadUsers() {
+      try {
+        const res = await getUsers();
+        if (!ignore) setUsers(res.data.users || []);
+      } catch (error) {
+        console.error("Falha ao carregar usuários:", error);
+      } finally {
+        if (!ignore) setLoadingUsers(false);
+      }
+    }
+
+    loadUsers();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const toggleParticipant = (userId) => {
+    setParticipants((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    );
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -80,6 +113,36 @@ export default function TodoForm() {
               </option>
             ))}
           </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">Participantes</label>
+
+          {loadingUsers ? (
+            <p className="text-sm text-gray-500">Carregando usuários...</p>
+          ) : (
+            <div className="max-h-40 overflow-y-auto border rounded p-3 space-y-2 bg-gray-50">
+              {users.length > 0 ? (
+                users.map((user) => (
+                  <label
+                    key={user._id}
+                    className="flex items-center gap-3 cursor-pointer hover:bg-gray-100 p-1 rounded"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={participants.includes(user._id)}
+                      onChange={() => toggleParticipant(user._id)}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <span className="text-sm text-gray-700">{user.name}</span>
+                  </label>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">
+                  Não há outros usuários disponíveis.                </p>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-3 pt-4">

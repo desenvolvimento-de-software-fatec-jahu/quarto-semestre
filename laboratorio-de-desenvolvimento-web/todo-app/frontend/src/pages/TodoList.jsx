@@ -4,7 +4,7 @@ import { getTodos, updateTodo, deleteTodo } from "../api/todoApi.js";
 import TodoItem from "../components/TodoItem.jsx";
 import { getErrorMessage } from "../utils/getErrorMessage.js";
 
-export default function TodoList() {
+export default function TodoList({ loggedUser }) {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -81,13 +81,20 @@ export default function TodoList() {
       {!loading && !error && (
         <div className="space-y-3">
           {todos.length === 0 ? (
-            <p className="text-center py-8 text-gray-500">Nenhuma tarefa encontrada.</p>
+            <p className="text-center py-8 text-gray-500">Nenhum todo encontrado.</p>
           ) : (
-            todos.map((todo) => (<TodoItem key={todo._id} todo={todo} onStatusChange={handleStatusChange} onDelete={handleDelete} />))
+            todos.map((todo) => (
+              <TodoItem
+                key={todo._id}
+                todo={todo}
+                loggedUser={loggedUser} // [NOVO]
+                onStatusChange={handleStatusChange}
+                onDelete={handleDelete}
+              />
+            ))
           )}
         </div>
       )}
-
 
     </div>
   );
