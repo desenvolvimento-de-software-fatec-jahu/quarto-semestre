@@ -1,12 +1,13 @@
 import { Router } from "express";
 import TodoController from "../controllers/TodoController.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
 
 const todoRoutes = Router();
 
-todoRoutes.post("/todos", TodoController.create);
-todoRoutes.get("/todos", TodoController.getAll);
-todoRoutes.get("/todos/:id", TodoController.getById);
-todoRoutes.put("/todos/:id", TodoController.update);
-todoRoutes.delete("/todos/:id", TodoController.remove);
+todoRoutes.post("/todos", authMiddleware, TodoController.create);
+todoRoutes.get("/todos", authMiddleware, TodoController.getAll);
+todoRoutes.get("/todos/:id", authMiddleware, TodoController.getById);
+todoRoutes.put("/todos/:id", authMiddleware, TodoController.update);
+todoRoutes.delete("/todos/:id", authMiddleware, TodoController.remove);
 
 export default todoRoutes;

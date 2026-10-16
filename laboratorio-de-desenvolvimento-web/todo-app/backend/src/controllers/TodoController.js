@@ -4,9 +4,23 @@ import Todo from "../models/Todo.js";
 // Campos que podem ser alterados em uma atualização
 const UPDATABLE_FIELDS = ["title", "description", "dueDate", "status"];
 
+const userAccessFilter = (userId) => ({
+  $or: [{ createdBy: userId }, { participants: userId }],
+});
+
+const populateTodo = (query) =>
+  query.populate("createdBy", "name email").populate("participants", "name email");
+
+function normalizeParticipants(participants, ownerId) {
+  if (participants === undefined) return [];
+  if (!Array.isArray(participants)) return null;
+  if (!participants.every((id) => mongoose.isValidObjectId(id))) return null;
+  return [...new Set(participants)].filter((id) => id !== ownerId);
+}
+
 export default class TodoController {
   static async create(req, res) {
-    const { title, description, dueDate, status } = req.body ?? {};
+    const { title, description, dueDate, status, participants } = req.body ?? {};
 
     if (!title || !description || !dueDate) {
       return res
@@ -14,11 +28,21 @@ export default class TodoController {
         .json({ message: "Título, descrição e data de entrega são obrigatórias" });
     }
 
+    const participantIds = normalizeParticipants(participants, req.user.id);
+    if (participantIds === null) {
+      return res
+        .status(422)
+        .json({ message: "Participantes deve ser uma lista de IDs de usuários válidos" });
+    }
+
     try {
-      const todo = await Todo.create({ title, description, dueDate, status });
+      const todo = await Todo.create({ title, description, dueDate, status, participants: participantIds, createdBy: req.user.id });
+
+      const populatedTodo = await populateTodo(Todo.findById(todo._id));
+
       return res
         .status(201)
-        .json({ message: "Tarefa criada com sucesso", todo });
+        .json({ message: "Tarefa criada com sucesso", todo: populatedTodo });
     } catch (error) {
       if (error.name === "ValidationError") {
         return res.status(422).json({ message: error.message });
@@ -31,7 +55,9 @@ export default class TodoController {
 
   static async getAll(req, res) {
     try {
-      const todos = await Todo.find().sort({ createdAt: -1 });
+      const todos = await populateTodo(
+        Todo.find(userAccessFilter(req.user.id)).sort({ createdAt: -1 })
+      );
       return res.status(200).json({ todos });
     } catch (error) {
       return res
@@ -48,7 +74,9 @@ export default class TodoController {
     }
 
     try {
-      const todo = await Todo.findById(id);
+      const todo = await populateTodo(
+        Todo.findOne({ _id: id, ...userAccessFilter(req.user.id) })
+      );
 
       if (!todo) {
         return res.status(404).json({ message: "Tarefa não encontrada" });
@@ -78,10 +106,13 @@ export default class TodoController {
     }
 
     try {
-      const todo = await Todo.findByIdAndUpdate(id, updates, {
-        new: true,
-        runValidators: true,
-      });
+      const todo = await populateTodo(
+        Todo.findOneAndUpdate(
+          { _id: id, ...userAccessFilter(req.user.id) },
+          updates,
+          { new: true, runValidators: true }
+        )
+      );
 
       if (!todo) {
         return res.status(404).json({ message: "Tarefa não encontrada" });
@@ -108,7 +139,10 @@ export default class TodoController {
     }
 
     try {
-      const todo = await Todo.findByIdAndDelete(id);
+      const todo = await Todo.findOneAndDelete({
+        _id: id,
+        createdBy: req.user.id,
+      });
 
       if (!todo) {
         return res.status(404).json({ message: "Tarefa não encontrada" });

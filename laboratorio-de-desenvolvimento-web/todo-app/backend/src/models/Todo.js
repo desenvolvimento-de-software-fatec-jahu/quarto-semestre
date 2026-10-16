@@ -26,6 +26,17 @@ const todoSchema = new Schema(
       enum: TODO_STATUSES,
       default: "PENDING",
     },
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    participants: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -19,7 +19,10 @@
     "dotenv": "^18.0.7",
     "express": "^5.3.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.11.2"
+    "mongoose": "^9.11.2",
+    "nodemailer": "^10.1.7",
+    "swagger-autogen": "^2.23.7",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
