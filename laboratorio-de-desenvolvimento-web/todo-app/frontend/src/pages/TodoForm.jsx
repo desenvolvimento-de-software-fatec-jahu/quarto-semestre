@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createTodo } from "../api/todoApi.js";
-import { getUsers } from "../api/userApi,js";
+import { getUsers } from "../api/userApi.js";
 import {
   STATUS_LABELS,
   STATUS_ORDER,

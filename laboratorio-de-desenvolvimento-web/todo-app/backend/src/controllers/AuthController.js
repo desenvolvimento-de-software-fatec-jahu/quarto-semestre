@@ -50,6 +50,7 @@ export default class AuthController {
 
   static async login(req, res) {
     const { email, password } = req.body ?? {};
+    console.log("Senha recebida no backend:", password);
 
     if (typeof email !== "string" || typeof password !== "string") {
       return res.status(422).json({ message: "Email e senha são obrigatórios" });

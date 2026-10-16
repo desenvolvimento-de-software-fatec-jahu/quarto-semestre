@@ -4,7 +4,7 @@ const EMAIL_HOST = process.env.EMAIL_HOST || "smtp.gmail.com";
 const EMAIL_PORT = parseInt(process.env.EMAIL_PORT || "587", 10);
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5174";
 
 const transporter = nodemailer.createTransport({
   host: EMAIL_HOST,
