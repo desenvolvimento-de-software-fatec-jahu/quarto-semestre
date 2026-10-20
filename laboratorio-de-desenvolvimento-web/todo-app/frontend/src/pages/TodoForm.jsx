@@ -2,12 +2,25 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createTodo } from "../api/todoApi.js";
 import { getUsers } from "../api/userApi.js";
+import VoiceControls from "../components/VoiceControls.jsx";
 import {
   STATUS_LABELS,
   STATUS_ORDER,
   TODO_STATUS,
 } from "../constants/todoStatus.js";
 import { getErrorMessage } from "../utils/getErrorMessage.js";
+import { useVoiceRecognition } from "../hooks/useVoiceRecognition.js";
+import { normalizeText } from "../utils/normalizeText.js";
+import { parseSpokenDate } from "../utils/spokenDate.js";
+import { parseSpokenStatus, parseVoiceCommand } from "../utils/voiceCommands.js";
+
+const VOICE_TIPS = [
+  { command: "título comprar leite", description: "preenche o título" },
+  { command: "descrição ir ao mercado", description: "preenche a descrição" },
+  { command: "data amanhã / prazo daqui a 3 dias", description: "programa a data de entrega" },
+  { command: "adicionar Maria", description: "seleciona um participante" },
+  { command: "status em andamento", description: "configura o status" },
+];
 
 export default function TodoForm() {
   const [title, setTitle] = useState("");
@@ -19,6 +32,7 @@ export default function TodoForm() {
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+  const [voiceFeedback, setVoiceFeedback] = useState("");
 
   useEffect(() => {
     let ignore = false;
@@ -49,6 +63,74 @@ export default function TodoForm() {
     );
   };
 
+  const addParticipant = (userId) => {
+    setParticipants((prev) => (prev.includes(userId) ? prev : [...prev, userId]));
+  };
+
+  // Recebe cada frase finalizada pelo reconhecedor e aplica no formulário
+  const handleVoiceTranscript = (transcript) => {
+    const command = parseVoiceCommand(transcript);
+
+    if (!command) {
+      setVoiceFeedback(`Comando não reconhecido: "${transcript}"`);
+      return;
+    }
+
+    switch (command.type) {
+      case "title":
+        setTitle(command.value);
+        setVoiceFeedback("Título preenchido");
+        break;
+
+      case "description":
+        setDescription(command.value);
+        setVoiceFeedback("Descrição preenchida");
+        break;
+
+      case "dueDate": {
+        const date = parseSpokenDate(command.value);
+        if (date) {
+          setDueDate(date);
+          setVoiceFeedback(`Data de entrega configurada para ${date}`);
+        } else {
+          setVoiceFeedback(`Não foi possível compreender a data: "${command.value}"`);
+        }
+        break;
+      }
+
+      case "participant": {
+        const spokenName = normalizeText(command.value);
+        const user = users.find((item) =>
+          normalizeText(item.name).includes(spokenName)
+        );
+        if (user) {
+          addParticipant(user._id);
+          setVoiceFeedback(`${user.name} added`);
+        } else {
+          setVoiceFeedback(`Usuário não encontrado: "${command.value}"`);
+        }
+        break;
+      }
+
+      case "status": {
+        const parsedStatus = parseSpokenStatus(command.value);
+        if (parsedStatus) {
+          setStatus(parsedStatus);
+          setVoiceFeedback(`Status configurado para ${STATUS_LABELS[parsedStatus]}`);
+        } else {
+          setVoiceFeedback(`Não foi possível compreender status: "${command.value}"`);
+        }
+        break;
+      }
+
+      default:
+        break;
+    }
+  };
+
+  const { isSupported, isListening, voiceError, toggleListening } =
+    useVoiceRecognition({ onTranscript: handleVoiceTranscript });
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setSaving(true);
@@ -66,6 +148,15 @@ export default function TodoForm() {
   return (
     <div className="max-w-xl mx-auto p-8 bg-white rounded-xl border border-gray-200 shadow-sm">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Nova Tarefa</h2>
+
+      <VoiceControls
+        isSupported={isSupported}
+        isListening={isListening}
+        onToggle={toggleListening}
+        error={voiceError}
+        feedback={voiceFeedback}
+        tips={VOICE_TIPS}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
