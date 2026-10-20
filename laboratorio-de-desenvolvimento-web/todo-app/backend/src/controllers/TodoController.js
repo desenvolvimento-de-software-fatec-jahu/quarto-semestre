@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Todo from "../models/Todo.js";
+import Message from "../models/Message.js";
 
 // Campos que podem ser alterados em uma atualização
 const UPDATABLE_FIELDS = ["title", "description", "dueDate", "status"];
@@ -147,6 +148,8 @@ export default class TodoController {
       if (!todo) {
         return res.status(404).json({ message: "Tarefa não encontrada" });
       }
+
+      await Message.deleteMany({ todo: todo._id });
 
       return res.status(200).json({ message: "Tarefa excluída com sucesso" });
     } catch (error) {

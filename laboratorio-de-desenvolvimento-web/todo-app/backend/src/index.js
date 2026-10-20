@@ -8,6 +8,7 @@ import { connectDatabase } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import todoRoutes from "./routes/todoRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
 
 const require = createRequire(import.meta.url);
 const swaggerDocument = require("../swagger-output.json");
@@ -35,6 +36,7 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api", authRoutes);
 app.use("/api", userRoutes);
 app.use("/api", todoRoutes);
+app.use("/api", chatRoutes);
 
 async function startServer() {
   try {
