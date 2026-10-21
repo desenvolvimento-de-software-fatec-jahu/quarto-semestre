@@ -22,3 +22,9 @@ export const STATUS_BADGE_CLASSES = {
   IN_PROGRESS: "bg-yellow-100 text-yellow-800",
   DONE: "bg-green-100 text-green-700",
 };
+
+export const STATUS_DOT_CLASSES = {
+  PENDING: "bg-gray-400",
+  IN_PROGRESS: "bg-yellow-400",
+  DONE: "bg-green-500",
+};

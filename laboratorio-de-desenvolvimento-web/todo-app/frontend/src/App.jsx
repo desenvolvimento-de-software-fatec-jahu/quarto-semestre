@@ -10,6 +10,7 @@ import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import TodoList from "./pages/TodoList.jsx";
 import TodoForm from "./pages/TodoForm.jsx";
+import KanbanBoard from "./pages/KanbanBoard.jsx";
 
 export default function App() {
   const [loggedUser, setLoggedUser] = useState(null);
@@ -84,6 +85,14 @@ export default function App() {
 
         <Route
           path="/todos"
+          element={
+            <ProtectedRoute loggedUser={loggedUser}>
+              <KanbanBoard loggedUser={loggedUser} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/todos/list"
           element={
             <ProtectedRoute loggedUser={loggedUser}>
               <TodoList loggedUser={loggedUser} />

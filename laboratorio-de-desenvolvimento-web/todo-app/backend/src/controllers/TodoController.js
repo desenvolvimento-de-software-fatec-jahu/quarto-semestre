@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import Todo from "../models/Todo.js";
+import Todo, { TODO_STATUSES } from "../models/Todo.js";
 import Message from "../models/Message.js";
 
 // Campos que podem ser alterados em uma atualização
@@ -129,6 +129,42 @@ export default class TodoController {
       return res
         .status(500)
         .json({ message: "Falha ao atualizar tarefa", error: error.message });
+    }
+  }
+
+   static async updateStatus(req, res) {
+    const { id } = req.params;
+    const { status } = req.body ?? {};
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: "Id da tarefa inválido" });
+    }
+
+    if (!TODO_STATUSES.includes(status)) {
+      return res.status(422).json({
+        message: `Status deve ser um dos seguintes: ${TODO_STATUSES.join(", ")}`,
+      });
+    }
+
+    try {
+      // Criador e participantes podem mover a tarefa entre as colunas
+      const todo = await populateTodo(
+        Todo.findOneAndUpdate(
+          { _id: id, ...userAccessFilter(req.user.id) },
+          { status },
+          { new: true, runValidators: true }
+        )
+      );
+
+      if (!todo) {
+        return res.status(404).json({ message: "Tarefa não encontrada" });
+      }
+
+      return res.status(200).json({ message: "Status atualizado com sucesso", todo });
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ message: "Falha ao atualizar status", error: error.message });
     }
   }
 

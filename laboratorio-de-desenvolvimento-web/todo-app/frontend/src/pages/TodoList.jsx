@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getTodos, updateTodo, deleteTodo } from "../api/todoApi.js";
+import { getTodos, updateTodoStatus, deleteTodo } from "../api/todoApi.js";
 import TodoItem from "../components/TodoItem.jsx";
 import { getErrorMessage } from "../utils/getErrorMessage.js";
 
@@ -33,12 +33,12 @@ export default function TodoList({ loggedUser }) {
 
   const handleStatusChange = async (todoId, status) => {
     try {
-      const res = await updateTodo(todoId, { status });
+      const res = await updateTodoStatus(todoId, status); // [ALTERADO]
       setTodos((prev) =>
         prev.map((todo) => (todo._id === todoId ? res.data.todo : todo))
       );
     } catch (err) {
-      alert("Falha ao atualizar tarefa: " + getErrorMessage(err));
+      alert("Failed to update todo: " + getErrorMessage(err));
     }
   };
 
@@ -54,7 +54,7 @@ export default function TodoList({ loggedUser }) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8">
+    <div className="bg-white rounded-xl border border-gray-200 p-6 md:p-8  max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Minhas Tarefas</h2>
